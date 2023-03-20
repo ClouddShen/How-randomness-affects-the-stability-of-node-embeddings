@@ -72,6 +72,7 @@ def test(model, predictor, node_features, pos_edge_index, neg_edge_index, batch_
 
         num_correct += correct_pos_num + correct_neg_num
 
+    
     acc = num_correct / (size * 2)
     return acc
 
@@ -82,7 +83,7 @@ def save_embedding_data(node_embbeding, embed_dim, seed):
     np.save(file_path, node_embbeding.detach().numpy())
     return
 
-def main(seed):
+def main(seed, embed_dim):
     cora_pyg = Planetoid(root='/tmp/Cora', name='Cora', split="full")
     cora_data = cora_pyg[0]
 
@@ -97,7 +98,7 @@ def main(seed):
     epochs = 10
     batch_size = 256
 
-    embed_dim = 8
+    # embed_dim = 8
     seed = seed
 
     device = f'cuda:{device}' if torch.cuda.is_available() else 'cpu'
@@ -133,13 +134,21 @@ def main(seed):
 
     print(loss_list)
     print(acc_list)
-    model_path = f'./cora/model/{embed_dim}/MLP_embed_{embed_dim}_seed_{seed}.pt'
+    model_path = f'./cora/model/{embed_dim}/GraphSAGE_embed_{embed_dim}_seed_{seed}.pt'
     torch.save(model.state_dict(), model_path)
+    print("Saving GraphSage in: ", model_path)
+
+    predictor_path = f'./cora/model/{embed_dim}/MLP_embed_{embed_dim}_seed_{seed}.pt'
+    torch.save(predictor.state_dict(), predictor_path)
+    print("Saving MLP in: ", predictor_path)
+    
     embeded_nodes = model(cora_data.x, train_pos_edges)
     print(embeded_nodes.shape)
     save_embedding_data(embeded_nodes, embed_dim, seed)
 
 
 if __name__ == '__main__':
-    for i in range(10):
-        main(i)
+    embed_dim_list = [16, 32, 64, 128, 256]
+    for embed_dim in embed_dim_list:
+        for i in range(10):
+            main(i, embed_dim)

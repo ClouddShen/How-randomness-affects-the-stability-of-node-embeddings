@@ -4,6 +4,9 @@ import torch
 from torch_geometric.utils import to_dense_adj, add_self_loops, to_undirected
 import numpy as np
 import networkx as nx
+import torch_geometric.transforms as T
+from torch.utils.data import DataLoader
+from ogb.linkproppred import PygLinkPropPredDataset
 
 def create_train_test_split(src, dst, split_ratio=0.1):
     G = nx.Graph()
@@ -62,3 +65,33 @@ def generate_test_neg(train_edges_undirected, test_edges_undirected):
     np.save('./cora/data/test_pos_edges.npy', test_pos_edges.numpy())
     np.save('./cora/data/test_neg_edges.npy', test_neg_edges.numpy())
     return train_pos_edges, test_pos_edges, test_neg_edges
+
+
+def generate_test_set_for_citation2():
+
+    dataset = PygLinkPropPredDataset(name='ogbl-citation2',
+                                     transform=T.ToSparseTensor())
+    data = dataset[0]
+    data.adj_t = data.adj_t.to_symmetric()
+    data = data
+
+    split_edge = dataset.get_edge_split()
+
+    source_pos = split_edge['test']['source_node'].reshape(1, -1)
+    target_pos = split_edge['test']['target_node'].reshape(1, -1)
+    source_neg = source_pos.reshape(1, -1)
+    target_neg = split_edge['test']['target_node_neg'].view(-1)[:86596].reshape(1, -1)
+
+    pos_edge = torch.concat((source_pos, target_pos), dim=0)
+    neg_edge = torch.concat((source_neg, target_neg), dim=0)
+
+    print(pos_edge.shape)
+    print(neg_edge.shape)
+
+    np.save('./citation2/data/test_pos_edge.npy', pos_edge.numpy())
+    np.save('./citation2/data/test_neg_edge.npy', neg_edge.numpy())
+    return
+
+
+# if __name__ == "__main__":
+#     generate_test_set_for_citation2()
