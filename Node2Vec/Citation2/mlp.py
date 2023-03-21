@@ -8,7 +8,7 @@ from ogb.linkproppred import PygLinkPropPredDataset, Evaluator
 import os
 from logger import Logger
 
-###
+####
 class LinkPredictor(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
                  dropout):
