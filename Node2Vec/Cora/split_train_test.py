@@ -24,12 +24,16 @@ def create_train_test_split(src, dst, split_ratio=0.1):
 
   # remove 10% edges from Gmax yet make it still connected
   removed_edges = []
-  for i in range(num_edges_to_remove):
-    G_max.remove_edge(*edge_list[i])
-
-    if not nx.is_connected(G):
-        removed_edges.append(edge_list[i])
-        continue
+  cnt = 0
+  index = 0
+  while cnt < num_edges_to_remove:
+    G_tmp = G_max.copy()
+    G_tmp.remove_edge(*edge_list[index])
+    if nx.is_connected(G_tmp):
+      G_max.remove_edge(*edge_list[index])
+      removed_edges.append(edge_list[index])
+      cnt+=1
+    index += 1
 
   src_train = [e[0] for e in G_max.edges()]
   dst_train = [e[1] for e in G_max.edges()]

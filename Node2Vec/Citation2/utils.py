@@ -48,6 +48,7 @@ def second_ord_cos_similarity(embedding1, embedding2, k=20):
     first_sim_neighbors2 = np.zeros((embedding2.shape[0], k * 2))
     for i, (indices1, indices2) in enumerate(zip(neighbor_indices1, neighbor_indices2)):
         union_indices = list(set(indices1).union(set(indices2)))
+        # print(len(union_indices))
         sim1 = sim_matrix1[i][union_indices]
         first_sim_neighbors1[i][:len(sim1)] = sim1
         sim2 = sim_matrix2[i][union_indices]
@@ -65,6 +66,17 @@ def predict_downstream_result(model, x, pos_edge, neg_edge):
     dst_neg_node = neg_edge[1].to(x.device)
     pos_prediction = model(x[src_pos_node], x[dst_pos_node]).squeeze().cpu() >= 0.5
     neg_prediction = model(x[src_neg_node], x[dst_neg_node]).squeeze().cpu() < 0.5
+    return pos_prediction, neg_prediction
+
+
+def predict_downstream_raw_result(model, x, pos_edge, neg_edge):
+    model.eval()
+    src_pos_node = pos_edge[0].to(x.device)
+    dst_pos_node = pos_edge[1].to(x.device)
+    src_neg_node = neg_edge[0].to(x.device)
+    dst_neg_node = neg_edge[1].to(x.device)
+    pos_prediction = model(x[src_pos_node], x[dst_pos_node])
+    neg_prediction = model(x[src_neg_node], x[dst_neg_node])
     return pos_prediction, neg_prediction
 
 
@@ -130,7 +142,7 @@ def load_model_param_and_load_embedding(model_src_dir, embedding_src_dir, device
     else:
         x_emb = torch.load(embedding_path, map_location='cpu')
         x_origin = torch.from_numpy(np.load("x_origin.npy"))
-        x = torch.cat((x_emb, x_origin), dim=-1)
+        x = torch.cat((x_origin, x_emb), dim=-1)
         x = x.to(device)
     model = LinkPredictor(x.size(-1), 256,1,3,0).to(device).to(device)
     model.load_state_dict(torch.load(model_param_path))

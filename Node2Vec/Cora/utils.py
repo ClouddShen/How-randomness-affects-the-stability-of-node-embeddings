@@ -6,6 +6,7 @@ from sklearn.metrics import jaccard_score
 from torch.utils.data import DataLoader
 import os
 from mlp import MLPPredictor
+from tqdm import tqdm
 
 
 def procruste_similarity(embedding1, embedding2):
@@ -171,18 +172,31 @@ def calculate_one_dim_downstream_result_similarity(model_src_dir, embedding_src_
 def calcaulate_overlap_for_all_seeds(model_src_dir, embedding_src_dir, pos_edge, neg_edge, device, node_feature_path="", dim=8, seed_num=10):
     pos_edge_num = pos_edge.shape[1]
     neg_edge_num = neg_edge.shape[1]
-    pos_pred_overlap = np.ones(pos_edge.shape[1]).astype(np.int32).astype(bool)
-    neg_pred_overlap = np.ones(neg_edge.shape[1]).astype(np.int32).astype(bool)
-    all_pred_overlap = np.ones(pos_edge.shape[1] + neg_edge.shape[1]).astype(np.int32).astype(bool)
-    for i in range(seed_num):
-        model, x = load_model_param_and_load_embedding(model_src_dir, embedding_src_dir, device, node_feature_path, dim=dim, seed=i)
+    for i in tqdm(range(seed_num)):
+        model, x = load_model_param_and_load_embedding(model_src_dir, embedding_src_dir, device, node_feature_path,
+                                                   dim=dim, seed=i)
         pos_prediction, neg_prediction = predict_downstream_result(model, x, pos_edge, neg_edge)
-        pos_pred_overlap = ~(pos_prediction.numpy().astype(bool) ^ pos_pred_overlap)
-        neg_pred_overlap = ~(neg_prediction.numpy().astype(bool) ^ neg_pred_overlap)
-        all_prediction = np.append(pos_prediction.numpy().astype(bool), neg_prediction.numpy().astype(bool))
-        all_pred_overlap = ~(all_prediction ^ all_pred_overlap)
-    return sum(pos_pred_overlap) / pos_edge_num, sum(neg_pred_overlap) / neg_edge_num, sum(all_pred_overlap) / (
-                pos_edge_num + neg_edge_num)
+        pos_prediction = pos_prediction.numpy().astype(np.int32)
+        neg_prediction = neg_prediction.numpy().astype(np.int32)
+        if i == 0:
+            pos_pred_overlap = pos_prediction.copy()
+            neg_pred_overlap = neg_prediction.copy()
+        else:
+            for j in range(pos_edge_num):
+                if pos_pred_overlap[j] == -1:
+                    continue
+                if pos_prediction[j] != pos_pred_overlap[j]:
+                    pos_pred_overlap[j] = -1
+            for j in range(neg_edge_num):
+                if neg_pred_overlap[j] == -1:
+                    continue
+                if neg_prediction[j] != neg_pred_overlap[j]:
+                    neg_pred_overlap[j] = -1
+    print(pos_pred_overlap)
+    pos_num = sum(pos_pred_overlap != -1)
+    print(pos_num)
+    neg_num = sum(neg_pred_overlap != -1)
+    return pos_num/pos_edge_num, neg_num/neg_edge_num, (pos_num+neg_num)/(pos_edge_num+neg_edge_num)
 
 
 def calculate_acc_mean_std_for_one_dim(model_src_dir, embedding_src_dir, pos_edge, neg_edge, device, node_feature_path="", dim=8,

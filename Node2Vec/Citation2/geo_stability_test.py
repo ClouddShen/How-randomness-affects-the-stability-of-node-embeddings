@@ -27,34 +27,40 @@ def compute_seed_sensitivity_for_citation2(metric, src_dir="", seed_num=5, dim =
 
 
 def compute_and_save_geometric_stability_for_citation2(model_name='Node2Vec', file_path='geo_result/Citation2_geometric_stability.csv'):
-    os.makedirs("geo_result", exist_ok=True)
+#     os.makedirs("geo_result", exist_ok=True)
+#     embed_dim = [8, 16, 32, 64, 128, 256]
+#     num_node_list = [1000, 2000, 4000, 8000, 16000]
+#     for dim in embed_dim:
+#         for num_node in num_node_list:
+#             print("------------- dim: ", dim, ", num_node: ", num_node, "-------------")
+#             pro_sim_mean, pro_sim_std, pro_sim_list = compute_seed_sensitivity_for_citation2(procruste_similarity, src_dir="embeddings", dim=dim, seed_num=5, num_node=num_node)
+#             print(pro_sim_mean, pro_sim_std)
+#             knn_sim_mean, knn_sim_std, knn_sim_list = compute_seed_sensitivity_for_citation2(knn_jaccard_similarity,  src_dir="embeddings", dim=dim, seed_num=5, num_node=num_node)
+#             print(knn_sim_mean, knn_sim_std)
+#             sec_sim_mean, sec_sim_std, sec_sim_list = compute_seed_sensitivity_for_citation2(second_ord_cos_similarity,  src_dir="embeddings", dim=dim, seed_num=5, num_node=num_node)
+#             print(sec_sim_mean, sec_sim_std)
+        
+#             length = len(pro_sim_list)
+#             data_name_column = [model_name] * length
+#             dim_column = [dim] * length
+#             num_node_column = [num_node] * length
+#             rows = zip(data_name_column, dim_column, num_node_column, pro_sim_list, knn_sim_list, sec_sim_list)
+
+
+#             file_exists = os.path.exists(file_path)
+
+#             with open(file_path, mode='a', newline='') as file:
+#                 writer = csv.writer(file)
+#                 if not file_exists:
+#                     writer.writerow(['model_name', 'embedding_dim', 'num_node', 'pro_sim', 'knn_sim', 'sec_sim'])
+#                 for row in rows:
+#                     writer.writerow(row)
+
     embed_dim = [8, 16, 32, 64, 128, 256]
-    num_node_list = [1000, 2000, 4000, 8000, 16000]
+    num_node_list = [1000]
     for dim in embed_dim:
         for num_node in num_node_list:
-            print("------------- dim: ", dim, ", num_node: ", num_node, "-------------")
-            pro_sim_mean, pro_sim_std, pro_sim_list = compute_seed_sensitivity_for_citation2(procruste_similarity, src_dir="embeddings", dim=dim, seed_num=5, num_node=num_node)
-            print(pro_sim_mean, pro_sim_std)
-            knn_sim_mean, knn_sim_std, knn_sim_list = compute_seed_sensitivity_for_citation2(knn_jaccard_similarity,  src_dir="embeddings", dim=dim, seed_num=5, num_node=num_node)
-            print(knn_sim_mean, knn_sim_std)
             sec_sim_mean, sec_sim_std, sec_sim_list = compute_seed_sensitivity_for_citation2(second_ord_cos_similarity,  src_dir="embeddings", dim=dim, seed_num=5, num_node=num_node)
-            print(sec_sim_mean, sec_sim_std)
-        
-            length = len(pro_sim_list)
-            data_name_column = [model_name] * length
-            dim_column = [dim] * length
-            num_node_column = [num_node] * length
-            rows = zip(data_name_column, dim_column, num_node_column, pro_sim_list, knn_sim_list, sec_sim_list)
-
-
-            file_exists = os.path.exists(file_path)
-
-            with open(file_path, mode='a', newline='') as file:
-                writer = csv.writer(file)
-                if not file_exists:
-                    writer.writerow(['model_name', 'embedding_dim', 'num_node', 'pro_sim', 'knn_sim', 'sec_sim'])
-                for row in rows:
-                    writer.writerow(row)
 
 def main():
     # src_dir = "embeddings"
@@ -68,7 +74,7 @@ def main():
     #     # print(f"second_mean {sim_mean}, second_std {sim_std}")
     
     compute_and_save_geometric_stability_for_citation2(model_name='Node2Vec', file_path='geo_result/Citation2_geometric_stability.csv')
-
+    
     
 if __name__ == '__main__':
     main()
