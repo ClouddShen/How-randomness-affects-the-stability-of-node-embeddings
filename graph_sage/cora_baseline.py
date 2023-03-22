@@ -148,7 +148,7 @@ def main(seed, embed_dim):
 
 
 if __name__ == '__main__':
-    embed_dim_list = [16, 32, 64, 128, 256]
+    embed_dim_list = [8, 16, 32, 64, 128, 256]
     for embed_dim in embed_dim_list:
         for i in range(10):
             main(i, embed_dim)
